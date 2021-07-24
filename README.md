@@ -21,6 +21,7 @@ expo-cli (global)
 react-navigation
 react-navigation/native 
 react-navigation/stack
+react-native-gifted-chat
 
 (expo) install: 
 react-native-reanimated 
