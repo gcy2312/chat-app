@@ -22,6 +22,7 @@ react-navigation
 react-navigation/native 
 react-navigation/stack
 react-native-gifted-chat
+firebase@8.2.3
 
 (expo) install: 
 react-native-reanimated 
