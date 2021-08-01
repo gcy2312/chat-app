@@ -23,6 +23,10 @@ react-navigation/native
 react-navigation/stack
 react-native-gifted-chat
 firebase@8.2.3
+react-native-uuid
+link
+@react-native-community/async-storage
+@react-native-community/netinfo
 
 (expo) install: 
 react-native-reanimated 
