@@ -1,6 +1,5 @@
 import React from 'react';
 import { GiftedChat, Bubble, InputToolbar } from 'react-native-gifted-chat';
-// import AsyncStorage from '@react-native-community/async-storage';
 import { AsyncStorage } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import uuid from 'react-native-uuid';
@@ -9,7 +8,6 @@ import { View, Platform, KeyboardAvoidingView, Alert } from 'react-native';
 
 import firebase from 'firebase';
 import "firebase/firestore";
-
 
 export default class Chat extends React.Component {
   constructor(props) {
@@ -24,6 +22,7 @@ export default class Chat extends React.Component {
       },
       isConnected: false,
     }
+
     const firebaseConfig = {
       apiKey: "AIzaSyAh7j5Dtpj_Us872eSYy8QtZRaxKmzCktQ",
       authDomain: "chat-app-53c98.firebaseapp.com",
@@ -73,7 +72,6 @@ export default class Chat extends React.Component {
     }
   }
 
-
   componentDidMount() {
     const name = this.props.route.params.name;
     this.props.navigation.setOptions({ title: `${name}'s Chatroom` });
@@ -105,10 +103,6 @@ export default class Chat extends React.Component {
             system: true,
             text: `${name}` + ' has entered the chat',
             createdAt: new Date(),
-            // user: {
-            //   _id: uuid.v4(),
-            //   name: 'Bot',
-            // }
           });
 
           // listen for collection changes for current user
@@ -141,6 +135,7 @@ export default class Chat extends React.Component {
         text: data.text,
         createdAt: data.createdAt.toDate(),
         user: data.user,
+        system: data.system,
       });
     });
     this.setState({
@@ -157,6 +152,7 @@ export default class Chat extends React.Component {
         createdAt: message.createdAt,
         user: message.user || null,
         uid: this.state.uid,
+        system: message.system || null,
       })
       .catch((error) => console.log("error", error));
   };
@@ -174,15 +170,6 @@ export default class Chat extends React.Component {
 
   //adjust styling for bubbles
   renderBubble(props) {
-    // const newMessage = this.state.messages[0];
-    const bgColor = this.props.route.params.bgColor;
-    if (props.system === true) {
-      return (
-        <View backgroundColor={bgColor}>
-          <Text backgroundColor={bgColor}> {systemMessage}</Text>
-        </View>
-      );
-    }
     return (
       <Bubble
         {...props}
