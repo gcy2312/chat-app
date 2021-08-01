@@ -1,188 +1,131 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { GiftedChat, Bubble, InputToolbar } from 'react-native-gifted-chat';
 // import AsyncStorage from '@react-native-community/async-storage';
 import { AsyncStorage } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
-import uuid from 'react-native-uuid';
+// import { useNetInfo } from '@react-native-community/netinfo';
+// import uuid from 'react-native-uuid';
 
 import { View, Platform, KeyboardAvoidingView, Alert } from 'react-native';
 
 import firebase from 'firebase';
 import "firebase/firestore";
 
+export default function Chat(props) {
+  // const netInfo = useNetInfo();
+  const bgColor = props.route.params.bgColor;
+  const name = props.route.params.name;
+  const [messages, setMessages] = useState([]);
+  const [user, setUser] = useState({});
+  const [isConnected, setIsConnected] = useState(false);
 
-export default class Chat extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      messages: [],
-      uid: 0,
-      user: {
-        _id: '',
-        name: '',
-        avatar: '',
-      },
-      isConnected: false,
-    }
-    const firebaseConfig = {
-      apiKey: "AIzaSyAh7j5Dtpj_Us872eSYy8QtZRaxKmzCktQ",
-      authDomain: "chat-app-53c98.firebaseapp.com",
-      projectId: "chat-app-53c98",
-      storageBucket: "chat-app-53c98.appspot.com",
-      messagingSenderId: "560035684319",
-      appId: "1:560035684319:web:719c09355560ee8079ee6a"
-    };
 
-    //connect to firebase
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-    //reference the collection in firebase
-    this.referenceChatMessages = null;
+  const firebaseConfig = {
+    apiKey: "AIzaSyAh7j5Dtpj_Us872eSYy8QtZRaxKmzCktQ",
+    authDomain: "chat-app-53c98.firebaseapp.com",
+    projectId: "chat-app-53c98",
+    storageBucket: "chat-app-53c98.appspot.com",
+    messagingSenderId: "560035684319",
+    appId: "1:560035684319:web:719c09355560ee8079ee6a"
+  };
+
+  //connect to firebase
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
   }
+  //listen for updates in Firebase DB
+  const refMessages = firebase.firestore().collection('messages');
 
-  // allows offline access to messages retrieved from client-side storage 
-  async getMessages() {
+  //get stored messages from client's localStorage
+  const getMessages = async () => {
     let messages = '';
+    let user = '';
     try {
+      //get data from asyncStorage
       messages = await AsyncStorage.getItem('messages') || [];
-      this.setState({
-        messages: JSON.parse(messages)
-      });
+      user = await AsyncStorage.getItem('user');
+      //set messages from asyncStorage
+      setMessages(JSON.parse(messages));
+      //set user from asyncStorage
+      setUser(JSON.parse(user));
     } catch (error) {
       console.log(error.message);
     }
   };
 
-  async saveMessages() {
+  //save messages to client's local storage
+  const saveMessages = async (messages) => {
     try {
-      await AsyncStorage.setItem('messages', JSON.stringify(this.state.messages));
+      await AsyncStorage.setItem('messages', JSON.stringify(messages));
     } catch (error) {
-      console.log(error.message);
+      console.error(error);
     }
-  }
+  };
 
-  async deleteMessages() {
+  //save user data to local Storage
+  const saveUser = async (user) => {
+    try {
+      await AsyncStorage.setItem('user', JSON.stringify(user));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  //only for dev stages (delete messages from localStorage)
+  const deleteMessages = async () => {
     try {
       await AsyncStorage.removeItem('messages');
-      this.setState({
-        messages: []
-      })
+      setMessages([]);
     } catch (error) {
       console.log(error.message);
     }
-  }
+  };
 
 
-  componentDidMount() {
-    const name = this.props.route.params.name;
-    this.props.navigation.setOptions({ title: `${name}'s Chatroom` });
-    this.getMessages();
 
-    NetInfo.fetch().then(connection => {
-      if (connection.isConnected) {
-        console.log('online');
-        this.setState({ isConnected: true });
-        //reference the collection in firebase
-        this.referenceChatMessages = firebase.firestore().collection("messages");
-        //authenticate user
-        this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
-          if (!user) {
-            await firebase.auth().signInAnonymously();
-          }
-          this.setState({
-            uid: user.uid,
-            user: {
-              _id: user.uid,
-              name: name,
-              avatar: 'https://placeimg.com/140/140/any',
-            },
-            messages: [],
-          });
-          console.log(user);
-          await this.addMessages({
-            _id: uuid.v4(),
-            system: true,
-            text: `${name}` + ' has entered the chat',
-            createdAt: new Date(),
-            // user: {
-            //   _id: uuid.v4(),
-            //   name: 'Bot',
-            // }
-          });
-
-          // listen for collection changes for current user
-          this.unsubscribe = this.referenceChatMessages
-            .orderBy("createdAt", "desc")
-            .onSnapshot(this.onCollectionUpdate);
-        });
-      } else {
-        console.log('offline');
-        this.setState({ isConnected: false });
-        Alert.alert('No internet connection. Unable to send messages.');
-      }
-    });
-  }
-
-  componentWillUnmount() {
-    this.unsubscribe();
-    this.authUnsubscribe();
-  }
-
-  //when something changes in the messages
-  onCollectionUpdate = (querySnapshot) => {
+  // Render real-time changes of collection with querySnapshot.
+  const onCollectionUpdate = (querySnapshot) => {
     const messages = [];
-    // go through each document
+    //go through all docs in collection
     querySnapshot.forEach((doc) => {
-      // get the QueryDocumentSnapshot's data
-      let data = doc.data();
+      //save the fields for each document
+      const data = doc.data();
       messages.push({
         _id: data._id,
-        text: data.text,
         createdAt: data.createdAt.toDate(),
+        text: data.text,
         user: data.user,
+        image: data.image || null,
+        location: data.location || null,
+        //needed for system messages
+        system: data.system || null,
       });
     });
-    this.setState({
-      messages,
+    setMessages(messages); //set with updated data from Firestore
+    saveMessages(messages); //save updated messages to localStorage
+  };
+
+  const onSend = (messages = []) => {
+    //append new messages to chat screen
+    setMessages((previousMessages) => GiftedChat.append(previousMessages.messages, messages));
+    //add each new message (first in array) to DB
+    addMessage(messages[0]);
+    //save message to async storage
+    saveMessages();
+  };
+
+  //save new messages in Firestore
+  const addMessage = (message) => {
+    refMessages.add({
+      _id: message._id,
+      createdAt: message.createdAt,
+      text: message.text,
+      user: message.user,
     });
   };
 
-  // Adds messages to cloud storage
-  addMessages = (message) => {
-    firebase.firestore().collection("messages")
-      .add({
-        _id: message._id,
-        text: message.text,
-        createdAt: message.createdAt,
-        user: message.user || null,
-        uid: this.state.uid,
-      })
-      .catch((error) => console.log("error", error));
-  };
-
-  onSend(messages = []) {
-    this.setState(previousState => ({
-      messages: GiftedChat.append(previousState.messages, messages),
-    }),
-      //save message to firestore using addMessages function when onSend prop called
-      () => {
-        this.addMessages(this.state.messages[0]);
-        this.saveMessages();
-      });
-  }
-
-  //adjust styling for bubbles
-  renderBubble(props) {
-    // const newMessage = this.state.messages[0];
-    const bgColor = this.props.route.params.bgColor;
-    if (props.system === true) {
-      return (
-        <View backgroundColor={bgColor}>
-          <Text backgroundColor={bgColor}> {systemMessage}</Text>
-        </View>
-      );
-    }
+  //styling for renderBubble
+  const renderBubble = (props) => {
     return (
       <Bubble
         {...props}
@@ -201,42 +144,77 @@ export default class Chat extends React.Component {
       // }}
       />
     )
+
   }
 
-  renderInputToolbar(props) {
-    if (this.state.isConnected == false) {
+  //if offline, no input toolbar
+  const renderInputToolbar = (props) => {
+    if (isConnected == false) {
     } else {
-      return (
-        <InputToolbar
-          {...props}
-        />
-      );
+      return <InputToolbar {...props} />
     }
-  }
-
-  render() {
-    const bgColor = this.props.route.params.bgColor;
-
-    return (
-      <View style={{
-        flex: 1, justifyContent: 'center',
-        //set Chat background color as color selected in Start page
-        backgroundColor: bgColor
-      }}
-      >
-        <GiftedChat
-          renderBubble={this.renderBubble.bind(this)}
-          renderInputToolbar={this.renderInputToolbar.bind(this)}
-          messages={this.state.messages}
-          onSend={messages => this.onSend(messages)}
-          user={this.state.user}
-        />
-
-        {/* if android, add KeyboardAvoidingView component */}
-        {Platform.OS === 'android' ? <KeyboardAvoidingView behavior="height" /> : null
-        }
-      </View>
-    );
   };
-}
 
+  useEffect(() => {
+    let authUnsubscribe = () => { };
+    let unsubscribe = () => { };
+
+    NetInfo.fetch().then((connection) => {
+      if (connection.isConnected) {
+        console.log('App Online');
+        setIsConnected(true);
+
+        authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
+          if (!user) {
+            await firebase.auth().signInAnonymously();
+          }
+          const userData = {
+            _id: user.uid,
+            name: name,
+            avatar: 'https://placeimg.com/140/140/any',
+          };
+          setUser(userData);
+          saveUser(userData);
+          setMessages([]);
+        });
+        unsubscribe = refMessages.orderBy('createdAt', 'desc').onSnapshot(onCollectionUpdate);
+      } else {
+        //user offline
+        console.log('app offline');
+        setIsConnected(false);
+        getMessages();
+        Alert.alert('ChattApp is not connected. Cannot send new messages.');
+      }
+    });
+    //unmount
+    return () => {
+      unsubscribe();
+      authUnsubscribe();
+    };
+  }, []);
+
+
+
+
+
+  return (
+    <View style={{
+      flex: 1, justifyContent: 'center',
+      //set Chat background color as color selected in Start page
+      backgroundColor: bgColor
+    }}
+    >
+      <GiftedChat
+        renderBubble={renderBubble}
+        renderInputToolbar={renderInputToolbar}
+        messages={messages}
+        onSend={(messages) => onSend(messages)}
+        user={user}
+      />
+
+      {/* if android, add KeyboardAvoidingView component */}
+      {Platform.OS === 'android' ? <KeyboardAvoidingView behavior="height" /> : null
+      }
+    </View>
+  );
+}

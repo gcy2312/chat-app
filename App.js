@@ -29,6 +29,9 @@ export default function App() {
         <Stack.Screen
           name="Chat"
           component={Chat}
+          options={({ route }) => ({
+            title: route.params.name,
+          })}
         />
       </Stack.Navigator>
     </NavigationContainer>
