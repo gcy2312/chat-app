@@ -1,10 +1,16 @@
 import React from 'react';
 import { GiftedChat, Bubble, InputToolbar } from 'react-native-gifted-chat';
+import { View, Platform, KeyboardAvoidingView, Alert } from 'react-native';
 import { AsyncStorage } from 'react-native';
+// import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from '@react-native-community/netinfo';
 import uuid from 'react-native-uuid';
 
-import { View, Platform, KeyboardAvoidingView, Alert } from 'react-native';
+import CustomActions from './CustomActions';
+// import MapView, { Marker } from 'react-native-maps';
+import MapView from "react-native-maps";
+
+
 
 import firebase from 'firebase';
 import "firebase/firestore";
@@ -81,9 +87,9 @@ export default class Chat extends React.Component {
       if (connection.isConnected) {
         console.log('online');
         this.setState({ isConnected: true });
-        //reference the collection in firebase
+        // reference the collection in firebase
         this.referenceChatMessages = firebase.firestore().collection("messages");
-        //authenticate user
+        // authenticate user
         this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
           if (!user) {
             await firebase.auth().signInAnonymously();
@@ -132,10 +138,12 @@ export default class Chat extends React.Component {
       let data = doc.data();
       messages.push({
         _id: data._id,
-        text: data.text,
+        text: data.text || null,
         createdAt: data.createdAt.toDate(),
         user: data.user,
-        system: data.system,
+        image: data.image || null,
+        location: data.location || null,
+        system: data.system || null,
       });
     });
     this.setState({
@@ -148,8 +156,10 @@ export default class Chat extends React.Component {
     firebase.firestore().collection("messages")
       .add({
         _id: message._id,
-        text: message.text,
+        text: message.text || null,
         createdAt: message.createdAt,
+        image: message.image || null,
+        location: message.location || null,
         user: message.user || null,
         uid: this.state.uid,
         system: message.system || null,
@@ -201,6 +211,38 @@ export default class Chat extends React.Component {
     }
   }
 
+  //if current message contains location - render map
+  renderCustomActions = (props) => {
+    return <CustomActions {...props} />;
+  };
+
+  renderCustomView(props) {
+    const { currentMessage } = props;
+    if (currentMessage.location) {
+      // const coords = {
+      //   latitude: currentMessage.location.latitude,
+      //   longitude: currentMessage.location.longitude,
+      // };
+      return (
+        <MapView
+          style={{
+            width: 150,
+            height: 100,
+            borderRadius: 13,
+            margin: 3
+          }}
+          region={{
+            latitude: currentMessage.location.latitude,
+            longitude: currentMessage.location.longitude,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+        />
+      );
+    }
+    return null;
+  }
+
   render() {
     const bgColor = this.props.route.params.bgColor;
 
@@ -214,6 +256,8 @@ export default class Chat extends React.Component {
         <GiftedChat
           renderBubble={this.renderBubble.bind(this)}
           renderInputToolbar={this.renderInputToolbar.bind(this)}
+          renderActions={this.renderCustomActions}
+          renderCustomView={this.renderCustomView}
           messages={this.state.messages}
           onSend={messages => this.onSend(messages)}
           user={this.state.user}
@@ -226,4 +270,18 @@ export default class Chat extends React.Component {
     );
   };
 }
+
+// const styles = StyleSheet.create({
+//   container: {
+//     width: 250,
+//     height: 150,
+//     borderRadius: 10,
+//     margin: 5,
+//     overflow: 'hidden',
+//   },
+//   map: {
+//     width: '100%',
+//     height: '100%',
+//   },
+// });
 
