@@ -27,6 +27,8 @@ react-native-uuid
 link
 @react-native-community/async-storage
 @react-native-community/netinfo
+expo-permissions
+expo-image-picker
 
 (expo) install: 
 react-native-reanimated 
