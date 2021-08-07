@@ -1,5 +1,5 @@
-import React, { Component, useState } from 'react';
-import { StyleSheet, View, Text, Button, TextInput, TouchableOpacity, ImageBackground, KeyboardAvoidingView } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, ImageBackground, KeyboardAvoidingView, Alert } from 'react-native';
 
 const colorChoices = ['#090C08', '#474056', '#8A95A5', '#B9C6AE']
 
@@ -78,13 +78,6 @@ export default function Home(props) {
                   accessibilityRole='menuitem'
                 />
               ))}
-
-              {/* <TouchableOpacity style={styles.bgColor2}
-                onPress={() => setBgColor('#474056')} />
-              <TouchableOpacity style={styles.bgColor3}
-                onPress={() => setBgColor('#8A95A5')} />
-              <TouchableOpacity style={styles.bgColor4}
-                onPress={() => setBgColor('#B9C6AE')} /> */}
             </View>
           </View>
 
@@ -124,10 +117,10 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     textAlign: 'center',
     top: 30,
-    height: 50,
+    height: 60,
   },
   chatSelect: {
-    flex: 0.44,
+    flex: 0.45,
     backgroundColor: '#ffffff',
     width: '88%',
     padding: '5%',
@@ -159,14 +152,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '300',
     color: '#757083',
-    // opacity: '100%',
+    paddingBottom: '2%',
   },
   shadow: {
     shadowOffset: {
       width: 0,
       height: 5,
     },
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 5,
   },
@@ -175,36 +168,17 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    borderWidth: 2,
-    // marginHorizontal: 10,
+    marginHorizontal: 10,
+    paddingBottom: '1%',
   }),
-  border: {
-    borderWidth: 2,
-    borderColor: '#595463',
+  circle: {
+    borderWidth: 3,
+    borderColor: '#777772',
   },
-
-  // bgColor2: {
-  //   backgroundColor: '#474056',
-  //   width: 50,
-  //   height: 50,
-  //   borderRadius: 25,
-  // },
-  // bgColor3: {
-  //   backgroundColor: '#8a95a5',
-  //   width: 50,
-  //   height: 50,
-  //   borderRadius: 25,
-  // },
-  // bgColor4: {
-  //   backgroundColor: '#b9c6ae',
-  //   width: 50,
-  //   height: 50,
-  //   borderRadius: 25,
-  // },
   button: {
     height: 60,
     backgroundColor: '#757083',
-    // paddingTop: '5%',
+    paddingTop: '1%',
   },
   btnText: {
     fontSize: 16,
