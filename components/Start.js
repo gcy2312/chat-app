@@ -1,64 +1,113 @@
-import React, { Component } from 'react';
-import { StyleSheet, View, Text, Button, TextInput, TouchableOpacity, ImageBackground } from 'react-native';
+import React, { Component, useState } from 'react';
+import { StyleSheet, View, Text, Button, TextInput, TouchableOpacity, ImageBackground, KeyboardAvoidingView } from 'react-native';
 
-export default class Home extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      name: '',
-      bgColor: '#757083'
-    }
-  }
-  render() {
-    let { bgColor } = this.state
+const colorChoices = ['#090C08', '#474056', '#8A95A5', '#B9C6AE']
 
-    return (
-      <View style={{ flex: 1, flexDirection: 'column', }}>
-        <ImageBackground source={require('../assets/background-image.png')} resizeMode="cover" style={styles.image}>
+export default function Home(props) {
+  [name, setName] = useState('');
+  [bgColor, setBgColor] = useState('');
 
-          <View style={styles.main}>
-            <Text style={styles.title}>Chat Me Up</Text>
-          </View>
+  const handlePressChat = (name, bgColor) => {
+    name === '' && bgColor === ''
+      ? Alert.alert(
+        'Please enter a username and select a background color to continue.',
+      )
+      : name === ''
+        ? Alert.alert(
+          'Please enter a username to continue.',
+        )
+        : bgColor === ''
+          ? Alert.alert(
+            'Please select a background color to continue.',
+          )
+          : props.navigation.navigate('Chat', {
+            name,
+            bgColor,
+          });
+  };
 
-          <View style={styles.chatSelect}>
-            <TextInput
-              style={styles.nameField}
-              onChangeText={(name) => this.setState({ name })}
-              value={this.state.name}
-              placeholder='Your name...'
-            />
-            <View style={styles.colorBox}>
-              <Text style={styles.bgColorText}>
-                Choose a background color:
-              </Text>
+  return (
+    <View style={{ flex: 1, flexDirection: 'column', }}>
+      <ImageBackground
+        source={require('../assets/background-image.png')}
+        resizeMode="cover"
+        style={styles.image}
+        accessibile={true}
+        accessibilityLabel='Background Image'
+        accessibilityHint='Blurred image of people talking and laughing'
+        accessibilityRole='image'
+      >
 
-              <View style={styles.bgColors}>
-                <TouchableOpacity style={styles.bgColor1}
-                  onPress={() => this.setState({ bgColor: '#090C08' })} />
-                <TouchableOpacity style={styles.bgColor2}
-                  onPress={() => this.setState({ bgColor: '#474056' })} />
-                <TouchableOpacity style={styles.bgColor3}
-                  onPress={() => this.setState({ bgColor: '#8A95A5' })} />
-                <TouchableOpacity style={styles.bgColor4}
-                  onPress={() => this.setState({ bgColor: '#B9C6AE' })} />
-              </View>
+        <View style={styles.main}>
+          <Text style={styles.title}
+            accessibile={true}
+            accessibilityLabel='App Title'
+            accessibilityHint='Display text ChatApp'
+            accessibilityRole='text'
+          >ChatApp</Text>
+        </View>
+
+        <View style={styles.chatSelect}>
+          <TextInput
+            style={styles.nameField}
+            onChangeText={(name) => setName(name)}
+            value={name}
+            placeholder='Your name...'
+            accessibile={true}
+            accessibilityLabel='Username Input'
+            accessibilityHint='Enter name here, and it will be displayed in Chat screen'
+          />
+          <View style={styles.colorBox}>
+            <Text style={styles.bgColorText}>
+              Choose a background color:
+            </Text>
+
+            <View style={styles.bgColors}>
+              {colorChoices.map((uColor) => (
+                <TouchableOpacity
+                  key={uColor}
+                  style={[
+                    styles.shadow,
+                    styles.selectColor(uColor),
+                    bgColor === uColor ? styles.circle : null,
+                  ]}
+                  onPress={() => setBgColor(uColor)}
+                  accessibile={true}
+                  accessibilityLabel='Select background color'
+                  accessibilityHint='Color selected will be background color in Chat screen'
+                  accessibilityRole='menuitem'
+                />
+              ))}
+
+              {/* <TouchableOpacity style={styles.bgColor2}
+                onPress={() => setBgColor('#474056')} />
+              <TouchableOpacity style={styles.bgColor3}
+                onPress={() => setBgColor('#8A95A5')} />
+              <TouchableOpacity style={styles.bgColor4}
+                onPress={() => setBgColor('#B9C6AE')} /> */}
             </View>
-
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => this.props.navigation.navigate('Chat', { name: this.state.name, bgColor: this.state.bgColor })}
-            >
-              <Text style={styles.btnText}>Start Chatting</Text>
-            </TouchableOpacity>
-
-
-
           </View>
 
-        </ImageBackground>
-      </View>
-    )
-  }
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => handlePressChat(name, bgColor)}
+            accessibile={true}
+            accessibilityLabel='Start Chatting'
+            accessibilityHint='Click button to enter Chat'
+            accessibilityRole='button'
+          >
+            <Text style={styles.btnText}>Start Chatting</Text>
+          </TouchableOpacity>
+
+        </View>
+
+      </ImageBackground>
+
+      {/* if android, add KeyboardAvoidingView component */}
+      {Platform.OS === 'android' ? <KeyboardAvoidingView behavior="height" /> : null
+      }
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -112,30 +161,46 @@ const styles = StyleSheet.create({
     color: '#757083',
     // opacity: '100%',
   },
-  bgColor1: {
-    backgroundColor: '#090c08',
+  shadow: {
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  selectColor: (uColor) => ({
+    backgroundColor: uColor,
     width: 50,
     height: 50,
     borderRadius: 25,
+    borderWidth: 2,
+    // marginHorizontal: 10,
+  }),
+  border: {
+    borderWidth: 2,
+    borderColor: '#595463',
   },
-  bgColor2: {
-    backgroundColor: '#474056',
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-  },
-  bgColor3: {
-    backgroundColor: '#8a95a5',
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-  },
-  bgColor4: {
-    backgroundColor: '#b9c6ae',
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-  },
+
+  // bgColor2: {
+  //   backgroundColor: '#474056',
+  //   width: 50,
+  //   height: 50,
+  //   borderRadius: 25,
+  // },
+  // bgColor3: {
+  //   backgroundColor: '#8a95a5',
+  //   width: 50,
+  //   height: 50,
+  //   borderRadius: 25,
+  // },
+  // bgColor4: {
+  //   backgroundColor: '#b9c6ae',
+  //   width: 50,
+  //   height: 50,
+  //   borderRadius: 25,
+  // },
   button: {
     height: 60,
     backgroundColor: '#757083',

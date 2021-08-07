@@ -94,6 +94,10 @@ export default function CustomActions(props) {
         'Send Location': sendLocation,
         Cancel: () => { },
       }}
+      accessibile={true}
+      accessibilityLabel='actions menu'
+      accessibilityHint='Select from menu to send a picture from device library, take a picture, or send location'
+      accessibilityRole='menu'
     />
   );
 }
