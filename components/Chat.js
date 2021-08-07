@@ -55,11 +55,11 @@ export default function Chat({ navigation, route }) {
         });
       });
       setMessages(messages);
-      saveMessages(messages); //Called here so that asyncstorage accurately reflects firebase store
+      saveMessages(messages); //localStorage update
     });
   };
 
-  //Save a local copy of the messages array
+  //Save a local copy of the messages 
   const saveMessages = async (messages) => {
     try {
       await AsyncStorage.setItem('messages', JSON.stringify(messages));
@@ -77,7 +77,7 @@ export default function Chat({ navigation, route }) {
     }
   };
 
-  //Retrieve local messages/user (used on initial mount/when offline)
+  //Retrieve local messages/user (used on initial mount & offline)
   const loadLocalMessages = async () => {
     try {
       const savedMessages = await (AsyncStorage.getItem('messages') || []);
@@ -128,7 +128,7 @@ export default function Chat({ navigation, route }) {
   //Update title with user name -- useEffect to avoid component update warnings
   useEffect(() => navigation.setOptions({ title: `${name}'s Chatroom` }), [navigation, name]);
 
-  //Authenticate and subscribes to Firestore on mount (reruns on netInfo change)
+  //Authenticate & subscribes to Firestore on mount (netInfo)
   useEffect(() => {
     loadLocalMessages();
     if (netInfo.isConnected) {
@@ -163,7 +163,7 @@ export default function Chat({ navigation, route }) {
     )
   };
 
-  //Custom render function so that input toolbar only appears while online
+  //input toolbar only appears while online
   const renderInputToolbar = (props) =>
     netInfo.isConnected === false
       ? null
@@ -219,26 +219,7 @@ export default function Chat({ navigation, route }) {
       }
     </View>
   );
-
-
-
 }
-
-
-
-// const styles = StyleSheet.create({
-//   container: {
-//     width: 250,
-//     height: 150,
-//     borderRadius: 10,
-//     margin: 5,
-//     overflow: 'hidden',
-//   },
-//   map: {
-//     width: '100%',
-//     height: '100%',
-//   },
-// });
 
 // await addMessages().then({
           //   _id: uuid.v4(),
