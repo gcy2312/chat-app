@@ -36,4 +36,16 @@ react-native-screens
 react-native-safe-area-context 
 react-native-community/masked-view
 
+## Cloning the app
+Requirements
+Node
+Expo CLI (command below)
+npm install expo-cli --g
+
+Install all dependencies with: npm install
+
+Then run the app via: expo start
+
+You will then be able to run the app through your emulator of choice or on your phone with the Expo Go app.
+
 
