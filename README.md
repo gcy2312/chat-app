@@ -1,11 +1,12 @@
-Project: Chat App
-React Native Mobile Chat App
+## Project: Chat App
+## React Native Mobile Chat App
 
-Objective: To build a chat app for mobile devices using React Native. The app will
+## Objective: 
+To build a chat app for mobile devices using React Native. The app will
 provide users with a chat interface and options to share images and their
 location.
 
-Technical Requirements
+## Technical Requirements
 ● Written in React Native, developed using Expo.
 ● Styled according to the given screen design.
 ● Chat conversations stored in Google Firestore Database.
@@ -16,7 +17,7 @@ Technical Requirements
 ● Read user’s location data (sent via map view).
 ● Chat interface and functionality created using the Gifted Chat library.
 
-Dependencies
+## Dependencies
 expo-cli (global)
 react-navigation
 react-navigation/native 
