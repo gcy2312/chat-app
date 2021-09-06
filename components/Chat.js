@@ -12,6 +12,37 @@ import CustomActions from './CustomActions';
 import firebase from 'firebase';
 import 'firebase/firestore';
 
+//Retrieve messages from firestore
+export const getMessagesDB = (refChatMessages, saveMessages, setMessages) => {
+  return refChatMessages.orderBy('createdAt', 'desc').onSnapshot((querySnapshot) => {
+    const messages = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      messages.push({
+        _id: data._id,
+        createdAt: data.createdAt.toDate(),
+        text: data.text,
+        user: data.user,
+        image: data.image,
+        location: data.location,
+        system: data.system,
+      });
+    });
+    setMessages(messages);
+    saveMessages(messages); //localStorage update
+  });
+};
+
+//Save a local copy of the messages 
+export const saveMessages = async (messages) => {
+  try {
+    await AsyncStorage.setItem('messages', JSON.stringify(messages));
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+
 export default function Chat({ navigation, route }) {
   //props from Start.js
   const { name, bgColor } = route.params;
@@ -37,36 +68,6 @@ export default function Chat({ navigation, route }) {
   }
   //reference the collection in firebase
   const refChatMessages = firebase.firestore().collection('messages');
-
-  //Retrieve messages from firestore
-  const getMessagesDB = () => {
-    return refChatMessages.orderBy('createdAt', 'desc').onSnapshot((querySnapshot) => {
-      const messages = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        messages.push({
-          _id: data._id,
-          createdAt: data.createdAt.toDate(),
-          text: data.text,
-          user: data.user,
-          image: data.image,
-          location: data.location,
-          system: data.system,
-        });
-      });
-      setMessages(messages);
-      saveMessages(messages); //localStorage update
-    });
-  };
-
-  //Save a local copy of the messages 
-  const saveMessages = async (messages) => {
-    try {
-      await AsyncStorage.setItem('messages', JSON.stringify(messages));
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   //Save user info locally
   const saveUser = async (user) => {
@@ -106,14 +107,15 @@ export default function Chat({ navigation, route }) {
 
       setUser(userData);
       console.log(userData);
-      saveUser(userData);
+      saveUser(userData)
+        .catch((e) => alert(e));
       setIsConnected(false);
     });
   };
 
   //Adds message to firebase store
   const uploadMessage = (message) => {
-    refChatMessages.add(message);
+    return refChatMessages.add(message);
   };
 
   //Adds user's message to state and firebase store
@@ -122,7 +124,8 @@ export default function Chat({ navigation, route }) {
       GiftedChat.append(previousMessages, messages)
     );
     //upload new message to Firestore
-    uploadMessage(messages[0]);
+    uploadMessage(messages[0])
+      .catch((e) => alert(e));
   }, []);
 
   //Update title with user name -- useEffect to avoid component update warnings
@@ -134,7 +137,7 @@ export default function Chat({ navigation, route }) {
     if (netInfo.isConnected) {
       //Run authentication and message requests and store returned unsub functions
       const authUnsubscribe = authenticateUser();
-      const refUnsubscribe = getMessagesDB();
+      const refUnsubscribe = getMessagesDB(refChatMessages, setMessages, saveMessages);
 
       //Unsubscribe on unmount
       return authUnsubscribe && refUnsubscribe;
@@ -170,9 +173,8 @@ export default function Chat({ navigation, route }) {
       : <InputToolbar {...props} />;
 
   //if current message contains location - render map
-  const renderCustomActions = (props) => {
-    return <CustomActions {...props} />;
-  };
+  const renderCustomActions = (props) => <CustomActions {...props} />;
+
 
   const renderCustomView = (props) => {
     const { currentMessage } = props;
